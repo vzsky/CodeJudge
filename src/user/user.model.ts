@@ -14,7 +14,8 @@ export const UserSchema = new mongoose.Schema({
 	role: Number,
 })
 
-export class UserDTO {
+export class UserDoc {
+	_id: string
 	name: string
 	password: string
 	email: string

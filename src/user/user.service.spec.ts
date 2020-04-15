@@ -1,20 +1,18 @@
 import { Test, TestingModule } from "@nestjs/testing"
 import { UserService } from "./user.service"
-import { Model } from "mongoose"
+import { Model, DocumentQuery } from "mongoose"
 import { User } from "./user.model"
 import { getModelToken } from "@nestjs/mongoose"
+import { createMock } from "@golevelup/nestjs-testing"
+import { JwtService } from "@nestjs/jwt"
 
-const mockCat = (
-	name?: string,
-	password?: string,
-	email?: string,
-	role?: number
-) => ({
-	name: name,
-	password: password,
-	email: email,
-	role: role,
-})
+const mockUser = (
+	_id: string = "ThisistheId",
+	name: string = "Homer",
+	password: string = "HASHED:I<3DoNut",
+	email: string = "Homer@Aloner",
+	role: number = 0
+): any => ({ _id, name, password, email, role })
 
 describe("UserService", () => {
 	let service: UserService
@@ -28,16 +26,20 @@ describe("UserService", () => {
 					provide: getModelToken("User"),
 					// notice that only the functions we call from the model are mocked
 					useValue: {
-						new: jest.fn().mockResolvedValue(mockCat()),
-						constructor: jest.fn().mockResolvedValue(mockCat()),
+						new: jest.fn().mockResolvedValue(mockUser()),
+						constructor: jest.fn().mockResolvedValue(mockUser()),
 						find: jest.fn(),
 						findOne: jest.fn(),
+						findById: jest.fn(),
 						update: jest.fn(),
 						create: jest.fn(),
 						remove: jest.fn(),
 						exec: jest.fn(),
 					},
 				},
+				{
+                    provide: 
+                }
 			],
 		}).compile()
 
@@ -53,26 +55,16 @@ describe("UserService", () => {
 		jest.clearAllMocks()
 	})
 
-	it("should insert a new cat", async () => {
-		jest.spyOn(model, "create").mockResolvedValueOnce({
-			_id: "some id",
-			name: "Oliver",
-			email: "t@l",
-			password: "hashed",
-			role: 0,
-		} as any) // dreaded as any, but it can't be helped
-		const newCat = await service.createUser({
-			name: "Oliver",
-			email: "t@l",
-			password: "hashed",
-			role: 0,
-		})
-		expect(newCat).toEqual({
-			_id: "some id",
-			name: "Oliver",
-			email: "t@l",
-			password: "hashed",
-			role: 0,
-		})
+	it("should register", async () => {
+		jest.spyOn(model, "create").mockResolvedValueOnce(mockUser())
+		jest.spyOn(model, "findOne").mockReturnValueOnce(
+			createMock<DocumentQuery<User, User, {}>>({
+				exec: jest.fn().mockResolvedValueOnce(null),
+			})
+		)
+		const newUser = await service.register(
+			mockUser("DumbassID", "Doesn't Matter", "WhoGiveShit", "notHashed")
+		)
+		expect(newUser).toEqual(mockUser())
 	})
 })

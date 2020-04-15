@@ -1,0 +1,1 @@
+Role of users represent permission such that 1 means admins, 0 means users
