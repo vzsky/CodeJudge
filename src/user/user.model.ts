@@ -5,6 +5,7 @@ export interface User extends mongoose.Document {
 	password: string
 	email: string
 	role: number
+	tasks: object
 }
 
 export const UserSchema = new mongoose.Schema({
@@ -12,6 +13,7 @@ export const UserSchema = new mongoose.Schema({
 	password: String,
 	email: String,
 	role: Number,
+	tasks: Object,
 })
 
 export class UserDoc {
@@ -20,4 +22,5 @@ export class UserDoc {
 	password: string
 	email: string
 	role: number
+	tasks: object
 }

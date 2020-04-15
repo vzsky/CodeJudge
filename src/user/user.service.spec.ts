@@ -5,23 +5,34 @@ import { User } from "./user.model"
 import { getModelToken } from "@nestjs/mongoose"
 import { createMock } from "@golevelup/nestjs-testing"
 import { JwtService } from "@nestjs/jwt"
+import { Response } from "../helper"
 
-const mockUser = (
-	_id: string = "ThisistheId",
-	name: string = "Homer",
-	password: string = "HASHED:I<3DoNut",
-	email: string = "Homer@Aloner",
-	role: number = 0
-): any => ({ _id, name, password, email, role })
+const mockUser = ({
+	_id = "ThisistheId",
+	name = "Homer",
+	password = "HASHED:I<3DoNut",
+	email = "Homer@Aloner",
+	role = 0,
+} = {}): any => ({ _id, name, password, email, role })
+// HashedPwd is Hashed pwd for 'HASHED:I<3DoNut'
+const HashedPwd = "$2b$10$L/CIWExbFkneyjdPX57io.isRxNhTD5A9TuZRhg0y7CMwnc3eo7De"
 
 describe("UserService", () => {
 	let service: UserService
 	let model: Model<User>
+	let jwt: JwtService
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				UserService,
+				{
+					provide: JwtService,
+					useValue: {
+						signAsync: jest.fn(),
+						verify: jest.fn(),
+					},
+				},
 				{
 					provide: getModelToken("User"),
 					// notice that only the functions we call from the model are mocked
@@ -37,14 +48,12 @@ describe("UserService", () => {
 						exec: jest.fn(),
 					},
 				},
-				{
-                    provide: 
-                }
 			],
 		}).compile()
 
 		service = module.get<UserService>(UserService)
 		model = module.get<Model<User>>(getModelToken("User"))
+		jwt = module.get<JwtService>(JwtService)
 	})
 
 	it("should be defined", () => {
@@ -62,9 +71,21 @@ describe("UserService", () => {
 				exec: jest.fn().mockResolvedValueOnce(null),
 			})
 		)
-		const newUser = await service.register(
-			mockUser("DumbassID", "Doesn't Matter", "WhoGiveShit", "notHashed")
+		const newUser = await service.register(mockUser())
+		expect(newUser).toEqual(mockUser({ password: "Hashed" }))
+	})
+
+	it("should login", async () => {
+		jest.spyOn(model, "findOne").mockReturnValueOnce(
+			createMock<DocumentQuery<User, User, {}>>({
+				exec: jest
+					.fn()
+					.mockResolvedValueOnce(mockUser({ password: HashedPwd })),
+			})
 		)
-		expect(newUser).toEqual(mockUser())
+		jest.spyOn(jwt, "signAsync").mockResolvedValueOnce("GeneratedToken")
+		const user = mockUser()
+		const login = await service.login(user.name, user.password)
+		expect(login).toEqual(Response("Success", "GeneratedToken"))
 	})
 })

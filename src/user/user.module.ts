@@ -12,6 +12,7 @@ import "../env"
 		MongooseModule.forFeature([{ name: "User", schema: UserSchema }]),
 	],
 	providers: [UserService],
-	controllers: [UserController],
+    controllers: [UserController],
+    exports: [UserService]
 })
 export class UserModule {}

@@ -14,11 +14,13 @@ export class UserService {
 	) {}
 
 	isResponseType(param: any): param is ResponseType {
+		if (param === undefined) return false
 		return (param as ResponseType).status !== undefined
 	}
 
 	isUserType(param: any): param is User {
 		// UserDoc will be treated as User
+		if (param === undefined) return false
 		return (param as User).name !== undefined
 	}
 
@@ -32,12 +34,11 @@ export class UserService {
 	private async createUser(user: User): Promise<UserDoc> {
 		user.password = await hash(user.password, 10)
 		const newuser = await this.userModel.create(user)
+		newuser.password = "Hashed"
 		return newuser
 	}
 
-	private async findUserByName(
-		name: string
-	): Promise<UserDoc | ResponseType> {
+	async findUserByName(name: string): Promise<UserDoc | ResponseType> {
 		const user = await this.userModel.findOne({ name }).exec()
 		if (user) return user
 		return Response("Success", "User Not Found")
@@ -77,6 +78,12 @@ export class UserService {
 		return false
 	}
 
+	async getNameFromToken(token: string): Promise<string | null> {
+		let res = await this.verifyToken(token)
+		if (res.status === "Error") return null
+		return res.msg.user.name
+	}
+
 	private async verifyToken(token: string): Promise<ResponseType> {
 		try {
 			let user = this.jwtService.verify(token)
@@ -84,5 +91,12 @@ export class UserService {
 		} catch (e) {
 			return Response("Error", e)
 		}
+	}
+
+	async updateUser(user: UserDoc): Promise<UserDoc> {
+		const users = await this.userModel
+			.findByIdAndUpdate(user._id, user)
+			.exec()
+		return users
 	}
 }

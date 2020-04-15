@@ -17,12 +17,12 @@ export class UserController {
 			user.role === null
 		)
 			return ReqError("Bad Request")
-		return this.userService.register(user)
+		return await this.userService.register(user)
 	}
 
 	@Get("all")
 	async findAll() {
-		return this.userService.findAll()
+		return await this.userService.findAll()
 	}
 
 	@Post("login")
