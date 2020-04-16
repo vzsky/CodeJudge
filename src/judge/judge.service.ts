@@ -4,6 +4,8 @@ import { Model } from "mongoose"
 import { Task, TaskDoc } from "./task.model"
 import { ResponseType, Response } from "../helper"
 import { UserService } from "src/user/user.service"
+import * as fs from "fs"
+import { Extract } from "unzip"
 
 @Injectable()
 export class JudgeService {
@@ -26,8 +28,22 @@ export class JudgeService {
 	async createTask(task: Task): Promise<Task | ResponseType> {
 		let exist = await this.findTaskByTid(task.tid)
 		if (this.isTaskType(exist)) return Response("Error", "This Tid is Used")
+		fs.mkdir(`./tasks/${task.tid}`, { recursive: true }, (err) => {
+			if (err) throw err
+		})
 		const newtask = await this.taskModel.create(task)
 		return newtask
+	}
+
+	unzip(tid: string): ResponseType {
+		try {
+			fs.createReadStream(`./tasks/${tid}/cases.zip`).pipe(
+				Extract({ path: `./tasks/${tid}/` })
+			)
+			return Response("Success", "Unzipped Cases")
+		} catch (e) {
+			return Response("Error", e)
+		}
 	}
 
 	private async findTaskByTid(tid: string): Promise<TaskDoc | ResponseType> {
@@ -39,20 +55,5 @@ export class JudgeService {
 	async findAll(): Promise<Task[]> {
 		const tasks = await this.taskModel.find().exec()
 		return tasks
-	}
-
-	async addUploadFile(
-		username: string,
-		tid: string,
-		filename: string
-	): Promise<ResponseType> {
-		let user = await this.userService.findUserByName(username)
-		if (this.isResponseType(user)) return Response("Error", "No Such User")
-		let task = await this.findTaskByTid(tid)
-		if (this.isResponseType(task)) return Response("Error", "No Such Task")
-		if (user.tasks === undefined) user.tasks = {}
-		user.tasks[tid] = { filename }
-		this.userService.updateUser(user).then() // grade
-		return Response("Success", "Uploaded")
 	}
 }

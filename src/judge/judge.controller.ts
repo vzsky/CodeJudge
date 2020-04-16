@@ -35,24 +35,17 @@ export class JudgeController {
 		FileInterceptor("File", {
 			storage: diskStorage({
 				destination: "./upload",
-				filename: (req: any, file: any, callback: any) => {
+				filename: (req: any, file: any, useName: any) => {
 					let ext = extname(file.originalname)
-					let slug = Array(8)
-						.fill(null)
-						.map(() => Math.round(Math.random() * 16).toString(16))
-						.join("")
-					callback(null, `${slug}${ext}`)
+					let username = req.user.username
+					let tid = req.headers.tid
+					useName(null, `${username}-${tid}${ext}`)
 				},
 			}),
 		})
 	)
-	async uploadFile(
-		@Headers("token") token: string,
-		@Body("tid") tid: string,
-		@UploadedFile() file: any
-	): Promise<ResponseType> {
-		const filename = file.filename
-		const username = await this.userService.getNameFromToken(token)
-		return await this.judgeService.addUploadFile(username, tid, filename)
+	uploadFile() {
+		// call judge
+		return Response("Success", "File Uploaded")
 	}
 }

@@ -13,6 +13,11 @@ export class UserService {
 		private readonly jwtService: JwtService
 	) {}
 
+	blindPassword(user: User): User {
+		user.password = "H4SheD"
+		return user
+	}
+
 	isResponseType(param: any): param is ResponseType {
 		if (param === undefined) return false
 		return (param as ResponseType).status !== undefined
@@ -34,8 +39,7 @@ export class UserService {
 	private async createUser(user: User): Promise<UserDoc> {
 		user.password = await hash(user.password, 10)
 		const newuser = await this.userModel.create(user)
-		newuser.password = "Hashed"
-		return newuser
+		return this.blindPassword(newuser)
 	}
 
 	async findUserByName(name: string): Promise<UserDoc | ResponseType> {
@@ -46,7 +50,9 @@ export class UserService {
 
 	async findAll(): Promise<User[]> {
 		const users = await this.userModel.find().exec()
-		return users
+		return users.map((val) => {
+			return this.blindPassword(val)
+		})
 	}
 
 	async login(name: string, password: string): Promise<ResponseType> {
@@ -65,38 +71,10 @@ export class UserService {
 		)
 	}
 
-	async isUser(token: string): Promise<boolean> {
-		let res = await this.verifyToken(token)
-		if (res.status === "Error") return false
-		return true
-	}
-
-	async isAdmin(token: string): Promise<boolean> {
-		let res = await this.verifyToken(token)
-		if (res.status === "Error") return false
-		if (res.msg.user.role === 1) return true
-		return false
-	}
-
-	async getNameFromToken(token: string): Promise<string | null> {
-		let res = await this.verifyToken(token)
-		if (res.status === "Error") return null
-		return res.msg.user.name
-	}
-
-	private async verifyToken(token: string): Promise<ResponseType> {
-		try {
-			let user = this.jwtService.verify(token)
-			return Response("Success", { user })
-		} catch (e) {
-			return Response("Error", e)
-		}
-	}
-
 	async updateUser(user: UserDoc): Promise<UserDoc> {
-		const users = await this.userModel
+		const updated = await this.userModel
 			.findByIdAndUpdate(user._id, user)
 			.exec()
-		return users
+		return this.blindPassword(updated)
 	}
 }
