@@ -5,6 +5,7 @@ import { MongooseModule } from "@nestjs/mongoose"
 import { TaskSchema } from "./task.model"
 import { MulterModule } from "@nestjs/platform-express"
 import { UserModule } from "../user/user.module"
+import { AdminController } from "./admin.controller"
 import "../env"
 
 @Module({
@@ -14,6 +15,6 @@ import "../env"
 		UserModule,
 	],
 	providers: [JudgeService],
-	controllers: [JudgeController],
+	controllers: [JudgeController, AdminController],
 })
 export class JudgeModule {}

@@ -1,11 +1,19 @@
-import { Controller, Post, Body, Get, Headers } from "@nestjs/common"
+import { Controller, Post, Body, Get, UseGuards, Request } from "@nestjs/common"
 import { UserService } from "./user.service"
 import { User } from "./user.model"
 import { ReqError } from "../helper"
+import { AuthGuard } from "@nestjs/passport"
+import { Response } from "../helper"
 
 @Controller("user")
 export class UserController {
 	constructor(private readonly userService: UserService) {}
+
+	@UseGuards(AuthGuard("jwt"))
+	@Get()
+	greet(@Request() req: any) {
+		return Response("Success", req.user)
+	}
 
 	@Post("create")
 	async createUser(@Body() user: User) {
@@ -25,24 +33,9 @@ export class UserController {
 		return await this.userService.findAll()
 	}
 
+	@UseGuards(AuthGuard("local"))
 	@Post("login")
-	async login(
-		@Body("name") name: string,
-		@Body("password") password: string
-	) {
-		if (!name || !password) return ReqError("Bad Request")
-		return await this.userService.login(name, password)
-	}
-
-	@Get("isuser")
-	async isUser(@Headers("token") token: string) {
-		if (!token) return ReqError("Bad Request")
-		return await this.userService.isAdmin(token)
-	}
-
-	@Get("isadmin")
-	async isAdmin(@Headers("token") token: string) {
-		if (!token) return ReqError("Bad Request")
-		return await this.userService.isAdmin(token)
+	async login(@Request() req: any) {
+		return req.user
 	}
 }

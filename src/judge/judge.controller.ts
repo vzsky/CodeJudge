@@ -5,6 +5,9 @@ import {
 	UploadedFile,
 	Headers,
 	Body,
+	UseGuards,
+	Get,
+	Request,
 } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
 import { JudgeService } from "./judge.service"
@@ -13,8 +16,8 @@ import { extname } from "path"
 import { UserService } from "src/user/user.service"
 import { Response, ResponseType } from "../helper"
 import { Task, TaskDoc } from "./task.model"
-import { throws } from "assert"
-
+import { AuthGuard } from "@nestjs/passport"
+@UseGuards(AuthGuard("jwt"))
 @Controller("judge")
 export class JudgeController {
 	constructor(
@@ -22,11 +25,9 @@ export class JudgeController {
 		private readonly userService: UserService
 	) {}
 
-	@Post("newtask")
-	async newtask(@Body() task: Task): Promise<ResponseType | TaskDoc> {
-		if (!task || !task.tid || !task.name)
-			return Response("Error", "Bad Request")
-		return await this.judgeService.createTask(task)
+	@Get("")
+	GreetUser(@Request() req: any) {
+		return Response("Success", req.user)
 	}
 
 	@Post("submitcode")
@@ -50,8 +51,6 @@ export class JudgeController {
 		@Body("tid") tid: string,
 		@UploadedFile() file: any
 	): Promise<ResponseType> {
-		let isuser = await this.userService.isUser(token)
-		if (!isuser) return Response("Error", "Only For Users")
 		const filename = file.filename
 		const username = await this.userService.getNameFromToken(token)
 		return await this.judgeService.addUploadFile(username, tid, filename)
