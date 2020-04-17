@@ -7,14 +7,17 @@ import { MulterModule } from "@nestjs/platform-express"
 import { UserModule } from "../user/user.module"
 import { AdminController } from "./admin.controller"
 import "../env"
+import { BullModule } from "@nestjs/bull"
+import { JudgeConsumer } from "./judge.comsumer"
 
 @Module({
 	imports: [
 		MongooseModule.forFeature([{ name: "Task", schema: TaskSchema }]),
 		MulterModule.register(),
 		UserModule,
+		BullModule.registerQueue({ name: "judge" }),
 	],
-	providers: [JudgeService],
+	providers: [JudgeService, JudgeConsumer],
 	controllers: [JudgeController, AdminController],
 })
 export class JudgeModule {}

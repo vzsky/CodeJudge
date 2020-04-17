@@ -5,13 +5,16 @@ import { Task, TaskDoc } from "./task.model"
 import { ResponseType, Response } from "../helper"
 import { UserService } from "src/user/user.service"
 import * as fs from "fs"
-import { Extract } from "unzip"
+import * as rimraf from "rimraf"
+import { Queue } from "bull"
+import { InjectQueue } from "@nestjs/bull"
 
 @Injectable()
 export class JudgeService {
 	constructor(
 		@InjectModel("Task") private taskModel: Model<Task>,
-		private readonly userService: UserService
+		private readonly userService: UserService,
+		@InjectQueue("judge") private judgeQueue: Queue
 	) {}
 
 	isResponseType(param: any): param is ResponseType {
@@ -28,19 +31,16 @@ export class JudgeService {
 	async createTask(task: Task): Promise<Task | ResponseType> {
 		let exist = await this.findTaskByTid(task.tid)
 		if (this.isTaskType(exist)) return Response("Error", "This Tid is Used")
-		fs.mkdir(`./tasks/${task.tid}`, { recursive: true }, (err) => {
-			if (err) throw err
-		})
+		fs.mkdirSync(`./tasks/${task.tid}`, { recursive: false })
 		const newtask = await this.taskModel.create(task)
 		return newtask
 	}
 
-	unzip(tid: string): ResponseType {
+	clearCases(tid: string): ResponseType {
 		try {
-			fs.createReadStream(`./tasks/${tid}/cases.zip`).pipe(
-				Extract({ path: `./tasks/${tid}/` })
-			)
-			return Response("Success", "Unzipped Cases")
+			rimraf.sync(`./tasks/${tid}`)
+			fs.mkdirSync(`./tasks/${tid}`, { recursive: false })
+			return Response("Success", `Cleared Old Cases of ${tid}`)
 		} catch (e) {
 			return Response("Error", e)
 		}
@@ -55,5 +55,10 @@ export class JudgeService {
 	async findAll(): Promise<Task[]> {
 		const tasks = await this.taskModel.find().exec()
 		return tasks
+	}
+
+	async queue() {
+		let job = await this.judgeQueue.add({ grade: "cpp" })
+		return Response("Success", job)
 	}
 }

@@ -45,7 +45,6 @@ export class JudgeController {
 		})
 	)
 	uploadFile() {
-		// call judge
-		return Response("Success", "File Uploaded")
+		return this.judgeService.queue()
 	}
 }

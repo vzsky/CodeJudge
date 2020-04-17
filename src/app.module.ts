@@ -4,6 +4,7 @@ import { AppService } from "./app.service"
 import { UserModule } from "./user/user.module"
 import { MongooseModule } from "@nestjs/mongoose"
 import { JudgeModule } from "./judge/judge.module"
+import { BullModule } from "@nestjs/bull"
 import "./env"
 
 @Module({
@@ -13,6 +14,7 @@ import "./env"
 		}),
 		UserModule,
 		JudgeModule,
+		BullModule.registerQueue({ name: "judge" }),
 	],
 	controllers: [AppController],
 	providers: [AppService],
