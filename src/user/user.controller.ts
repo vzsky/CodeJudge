@@ -15,6 +15,12 @@ export class UserController {
 		return Response("Success", req.user)
 	}
 
+	@UseGuards(AuthGuard("jwt"))
+	@Get("mytask")
+	mytask(@Request() req: any) {
+		return this.userService.mytask(req.user.username)
+	}
+
 	@Post("create")
 	async createUser(@Body() user: User) {
 		if (

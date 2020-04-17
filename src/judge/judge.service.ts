@@ -5,15 +5,14 @@ import { Task, TaskDoc } from "./task.model"
 import { ResponseType, Response, ReqError } from "../helper"
 import { UserService } from "src/user/user.service"
 import * as fs from "fs"
-import * as rimraf from "rimraf"
 import { Queue } from "bull"
 import { InjectQueue } from "@nestjs/bull"
+import { exec } from "child_process"
 
 @Injectable()
 export class JudgeService {
 	constructor(
 		@InjectModel("Task") private taskModel: Model<Task>,
-		private readonly userService: UserService,
 		@InjectQueue("judge") private judgeQueue: Queue
 	) {}
 
@@ -36,17 +35,31 @@ export class JudgeService {
 		return newtask
 	}
 
-	clearCases(tid: string): ResponseType {
-		try {
-			rimraf.sync(`./tasks/${tid}`)
-			fs.mkdirSync(`./tasks/${tid}`, { recursive: false })
-			return Response("Success", `Cleared Old Cases of ${tid}`)
-		} catch (e) {
-			return ReqError(e)
-		}
+	clearCases(tid: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			exec(
+				`rm -rf ./tasks/${tid} && mkdir ./tasks/${tid}`,
+				(err, stdout, stderr) => {
+					if (err) return reject(err)
+					return resolve()
+				}
+			)
+		})
 	}
 
-	private async findTaskByTid(tid: string): Promise<TaskDoc | ResponseType> {
+	unzip(tid: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			exec(
+				`unzip ./tasks/${tid}/Cases.zip -d ./tasks/${tid}`,
+				(err, stdout, stderr) => {
+					if (err) return reject(err)
+					return resolve()
+				}
+			)
+		})
+	}
+
+	async findTaskByTid(tid: string): Promise<TaskDoc | ResponseType> {
 		const task = await this.taskModel.findOne({ tid }).exec()
 		if (task) return task
 		return Response("Success", "User Not Found")

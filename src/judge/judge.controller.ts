@@ -21,16 +21,14 @@ import { AuthGuard } from "@nestjs/passport"
 @UseGuards(AuthGuard("jwt"))
 @Controller("judge")
 export class JudgeController {
-	constructor(
-		private readonly judgeService: JudgeService,
-		private readonly userService: UserService
-	) {}
+	constructor(private readonly judgeService: JudgeService) {}
 
 	@Get("")
 	GreetUser(@Request() req: any) {
 		return Response("Success", req.user)
 	}
 
+	// Add TID Validator
 	@Post("submitcode")
 	@UseInterceptors(
 		FileInterceptor("File", {

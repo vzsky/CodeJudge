@@ -53,7 +53,7 @@ $ yarn start
 # watch mode
 $ yarn start:dev
 
-# debug mode
+# debug mode ( Not Recommended since we have uploads )
 $ yarn start:debug
 
 # production mode

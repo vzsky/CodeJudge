@@ -70,6 +70,25 @@ export class UserService {
 		)
 	}
 
+	async mytask(uname: string): Promise<ResponseType> {
+		let user = await this.findUserByName(uname)
+		if (this.isResponseType(user)) return user
+		return Response("Success", user.tasks)
+	}
+
+	async addResult(
+		uname: string,
+		tid: string,
+		result: string[]
+	): Promise<ResponseType> {
+		let user = await this.findUserByName(uname)
+		if (this.isResponseType(user)) return user
+		if (user.tasks === undefined) user.tasks = {}
+		user.tasks[tid] = result
+		this.updateUser(user)
+		return Response("Success", "Updating User's Result")
+	}
+
 	async updateUser(user: UserDoc): Promise<UserDoc> {
 		const updated = await this.userModel
 			.findByIdAndUpdate(user._id, user)
