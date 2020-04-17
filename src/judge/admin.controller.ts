@@ -7,6 +7,7 @@ import {
 	UseGuards,
 	Get,
 	Request,
+	BadRequestException,
 } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
 import { JudgeService } from "./judge.service"
@@ -32,8 +33,7 @@ export class AdminController {
 
 	@Post("newtask")
 	async newtask(@Body() task: Task): Promise<ResponseType | TaskDoc> {
-		if (!task || !task.tid || !task.name)
-			return Response("Error", "Bad Request")
+		if (!task || !task.tid || !task.name) throw new BadRequestException()
 		return await this.judgeService.createTask(task)
 	}
 

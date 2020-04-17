@@ -15,3 +15,10 @@ export class TaskDoc {
 	tid: string
 	name: string
 }
+
+export class JudgeDTO {
+	uid: string
+	tid: string
+	lang: string
+	file: string
+}

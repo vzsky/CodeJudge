@@ -1,1 +1,0 @@
-echo "I'm cpp judge script. I'm grading $1"

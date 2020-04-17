@@ -8,6 +8,7 @@ import {
 	UseGuards,
 	Get,
 	Request,
+	BadRequestException,
 } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
 import { JudgeService } from "./judge.service"
@@ -44,7 +45,15 @@ export class JudgeController {
 			}),
 		})
 	)
-	uploadFile() {
-		return this.judgeService.queue()
+	uploadFile(@Request() req: any) {
+		if (!req.headers.lang) throw new BadRequestException()
+		if (!req.headers.tid) throw new BadRequestException()
+
+		return this.judgeService.queue(
+			req.headers.lang,
+			req.user.username,
+			req.headers.tid,
+			req.file.path
+		)
 	}
 }

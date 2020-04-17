@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { User, UserDoc } from "./user.model"
-import { Response, ResponseType } from "../helper"
+import { Response, ResponseType, ReqError } from "../helper"
 import { hash, compare } from "bcrypt"
 import { JwtService } from "@nestjs/jwt"
 
@@ -31,8 +31,7 @@ export class UserService {
 
 	async register(user: User): Promise<UserDoc | ResponseType> {
 		let exist = await this.findUserByName(user.name)
-		if (this.isUserType(exist))
-			return Response("Error", "This Name is Used")
+		if (this.isUserType(exist)) return ReqError("This Name is Used")
 		return await this.createUser(user)
 	}
 
@@ -57,9 +56,9 @@ export class UserService {
 
 	async login(name: string, password: string): Promise<ResponseType> {
 		let user = await this.findUserByName(name)
-		if (this.isResponseType(user)) return Response("Error", "No Such User")
+		if (this.isResponseType(user)) return ReqError("No Such User")
 		let valid = await compare(password, user.password)
-		if (!valid) return Response("Error", "Wrong Password")
+		if (!valid) return ReqError("Wrong Password")
 		let token = await this.getToken(user)
 		return Response("Success", token)
 	}

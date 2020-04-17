@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { Task, TaskDoc } from "./task.model"
-import { ResponseType, Response } from "../helper"
+import { ResponseType, Response, ReqError } from "../helper"
 import { UserService } from "src/user/user.service"
 import * as fs from "fs"
 import * as rimraf from "rimraf"
@@ -30,7 +30,7 @@ export class JudgeService {
 
 	async createTask(task: Task): Promise<Task | ResponseType> {
 		let exist = await this.findTaskByTid(task.tid)
-		if (this.isTaskType(exist)) return Response("Error", "This Tid is Used")
+		if (this.isTaskType(exist)) return ReqError("This Tid is Used")
 		fs.mkdirSync(`./tasks/${task.tid}`, { recursive: false })
 		const newtask = await this.taskModel.create(task)
 		return newtask
@@ -42,7 +42,7 @@ export class JudgeService {
 			fs.mkdirSync(`./tasks/${tid}`, { recursive: false })
 			return Response("Success", `Cleared Old Cases of ${tid}`)
 		} catch (e) {
-			return Response("Error", e)
+			return ReqError(e)
 		}
 	}
 
@@ -57,8 +57,13 @@ export class JudgeService {
 		return tasks
 	}
 
-	async queue() {
-		let job = await this.judgeQueue.add({ grade: "cpp" })
+	async queue(
+		lang: string,
+		uid: string,
+		tid: string,
+		file: string
+	): Promise<ResponseType> {
+		let job = await this.judgeQueue.add({ lang, uid, tid, file })
 		return Response("Success", job)
 	}
 }

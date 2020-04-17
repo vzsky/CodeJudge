@@ -2,7 +2,7 @@ import { BadRequestException } from "@nestjs/common"
 
 export const ReqError = (msg: string) => {
 	throw new BadRequestException({
-		status: "failed",
+		status: "Error",
 		msg,
 	})
 }
