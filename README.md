@@ -26,9 +26,12 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript CodeJudge 
+[Nest](https://github.com/nestjs/nest) framework TypeScript CodeJudge
 
 ## Installation
+
+-   Install Redis (download to root dir) then make
+-   Make sure the dirname is redis
 
 ```bash
 $ yarn
@@ -37,6 +40,7 @@ $ yarn
 ## Running the app
 
 Run Redis first
+
 ```
 # Redis server at localhost:6379
 $ yarn redis
