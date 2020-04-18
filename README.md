@@ -5,8 +5,8 @@
 
 ## Description
 
-Nest framework TypeScript - CodeJudge
-[API Document] (https://documenter.getpostman.com/view/8376434/Szf53Udn) of this project
+Nest framework TypeScript - CodeJudge  
+[API Document](https://documenter.getpostman.com/view/8376434/Szf53Udn) of this project
 
 ## Installation
 
