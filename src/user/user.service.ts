@@ -32,6 +32,7 @@ export class UserService {
 	async register(user: User): Promise<UserDoc | ResponseType> {
 		let exist = await this.findUserByName(user.name)
 		if (this.isUserType(exist)) return ReqError("This Name is Used")
+		user.role = 0
 		return await this.createUser(user)
 	}
 
